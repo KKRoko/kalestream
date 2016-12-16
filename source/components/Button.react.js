@@ -4,8 +4,8 @@ var buttonStyle = {
   margin: '10px 10px 10px 0'
 };
 
-var Button = React.createClass({\
-  render: function() {
+var Button = React.createClass({
+  render: function () {
     return (
       <button
         className="btn btn-default"

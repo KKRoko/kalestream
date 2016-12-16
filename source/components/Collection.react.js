@@ -1,55 +1,74 @@
 var React = require('react');
-var ReactDOMServer = require('react-dom/server');
-var CollectControls = require('./CollectionControls.react');
-var TweetList = require('./TweetList.react');
 var Header = require('./Header.react');
+var Button = require('./Button.react');
+var CollectionRenameForm = require('./CollectionRenameForm.react');
+var CollectionExportForm = require('./CollectionExportForm.react');
 
-var Collection = React.createClass({
-  createHtmlMarkupStringOfTweetList: function () {
-  var htmlString = ReactDOMServer.renderToStaticMarkup(
-    <TweetList tweets={this.props.tweets} />
-  );
+var CollectionControls = React.createClass({
 
-  var htmlMarkup = {
-    html: htmlString
-  };
-
-  return JSON.stringify(htmlMarkup);
+  getInitialState: function () {
+    return {
+      name: 'new',
+      isEditingName: false
+    };
   },
 
-  getListOfTweetIds: function () {
-    return Object.keys(this.props.tweets);
+  getHeaderText: function () {
+    var numberOfTweetsInCollection = this.props.numberOfTweetsInCollection;
+    var text = numberOfTweetsInCollection;
+
+    if (numberOfTweetsInCollection === 1) {
+      text = text + ' tweet in your';
+    } else {
+      text = text + ' tweets in your';
+    }
+
+    return (
+      <span>
+        {text} <strong>{this.state.name}</strong> collection
+      </span>
+    );
   },
 
-  getNumberOfTweetsInCollection: function () {
-    return this.getListOfTweetIds().length;
+  toggleEditCollectionName: function () {
+    this.setState({
+      isEditingName: !this.state.isEditingName
+    });
+  },
+
+  setCollectionName: function (name) {
+    this.setState({
+      name: name,
+      isEditingName: false
+    });
   },
 
   render: function () {
-    var numberOfTweetsInCollection = this.getNumberOfTweetsInCollection();
-
-    if (numberOfTweetsInCollection > 0) {
-      var tweets = this.props.tweets;
-      var htmlMarkup = this.createHtmlMarkupStringOfTweetList();
-      var removeAllTweetsFromCollection = this.props.onRemoveAllTweetsFromCollection;
-      var handleRemoveTweetFromCollection = this.props.onRemoveTweetFromCollection;
-
+    if (this.state.isEditingName) {
       return (
-        <div>
-          <CollectionControls
-            numberOfTweetsInCollection={numberOfTweetsInCollection}
-            htmlMarkup={htmlMarkup}
-            onRemoveAllTweetsFromCollection={removeAllTweetsFromCollection} />
-
-          <TweetList
-            tweets={tweets}
-            onRemoveTweetFromCollection={handleRemoveTweetFromCollection} />
-        </div>
+        <CollectionRenameForm
+          name={this.state.name}
+          onChangeCollectionName={this.setCollectionName}
+          onCancelCollectionNameChange={this.toggleEditCollectionName} />
       );
     }
 
-    return <Header text="Your collection is empty" />;
+    return (
+      <div>
+        <Header text={this.getHeaderText()} />
+
+        <Button
+          label="Rename collection"
+          handleClick={this.toggleEditCollectionName} />
+
+        <Button
+          label="Empty collection"
+          handleClick={this.props.onRemoveAllTweetsFromCollection} />
+
+        <CollectionExportForm htmlMarkup={this.props.htmlMarkup} />
+      </div>
+    );
   }
 });
 
-module.exports = Collection;
+module.exports = CollectionControls;
